@@ -1,6 +1,6 @@
 var [x, y] = [-6.895865463274139, 107.76433421404633];
 
-const server = "http://127.0.0.1:5000";
+const server = window.DRONE_API_BASE || "/api";
 
 
 
@@ -201,9 +201,9 @@ draw.start();
 // }
 
 async function getDroneData() {
-  const res = await fetch("http://127.0.0.1:5000/data");
-  const json = await res.json();
-  return json; // array of drone data
+  const res = await fetch(`${server}/data`);
+  if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+  return await res.json(); // array of drone data
 }
 
 
@@ -358,7 +358,7 @@ if (Number(drone.human_detected) === 1) {
     const ss = String(date.getSeconds()).padStart(2, "0");
 
     const filename = `${MM}-${DD}-${HH}-${mm}-${ss}.jpg`;
-    const imageUrl = `http://127.0.0.1:5000/foto/${filename}`;
+    const imageUrl = `${server}/foto/${filename}`;
 
     // ===============================
     // 4. GEOJSON POINT DETEKSI (HISTORY)
@@ -397,8 +397,6 @@ if (Number(drone.human_detected) === 1) {
 
 async function fetchData() {
   try {
-    console.log("anjai");
-    // const response = await fetch('http://192.168.105.193:5000/data');
     const response = await fetch(`${server}/data`);
     const contentType = response.headers.get("content-type");
 
@@ -408,15 +406,18 @@ async function fetchData() {
 
     if (contentType && contentType.includes("application/json")) {
       const data = await response.json();
+      if (!Array.isArray(data) || data.length === 0) return;
+
+      const latest = data[data.length - 1];
 
       const altitude = document.getElementById("altitudeValue");
-      altitude.textContent = `Altitude: ${data[data.length - 1].altitude}`;
+      if (altitude) altitude.textContent = `Altitude: ${latest.altitude}`;
 
       const latitude = document.getElementById("latitudeValue");
-      latitude.textContent = `Latitude: ${data[data.length - 1].latitude}`;
+      if (latitude) latitude.textContent = `Latitude: ${latest.latitude}`;
 
       const longitude = document.getElementById("longitudeValue");
-      longitude.textContent = `Longitude: ${data[data.length - 1].longitude}`;
+      if (longitude) longitude.textContent = `Longitude: ${latest.longitude}`;
 
       // const yaw = document.getElementById('yawValue');
       // yaw.textContent = `Yaw: ${data[data.length-1].yaw}`;
@@ -441,10 +442,7 @@ async function fetchData() {
           type: "Feature",
           geometry: {
             type: "Point",
-            coordinates: [
-              data[data.length - 1].longitude,
-              data[data.length - 1].latitude,
-            ],
+            coordinates: [latest.longitude, latest.latitude],
           },
           properties: {
             mode: "point",
@@ -478,15 +476,24 @@ async function fetchData() {
 }
 
 async function command(command) {
-  console.log(`${server}/command`);
-  const response = await fetch(`${server}/command`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ command: command }),
-  });
-  console.log(response);
+  try {
+    const response = await fetch(`${server}/command`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ command: command }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    return await response.json().catch(() => null);
+  } catch (error) {
+    console.error("Command failed:", error);
+    return null;
+  }
 }
 
 // const armButton = document.querySelector("#armButton");
@@ -520,14 +527,7 @@ if (armButton && disarmButton && statusText) {
 }
 
 
-const motor1Button = document.querySelector("#motor1Button");
-motor1Button.addEventListener("click", () => command("testmotor,1,15"));
-const motor2Button = document.querySelector("#motor2Button");
-motor2Button.addEventListener("click", () => command("testmotor,2,15"));
-const motor3Button = document.querySelector("#motor3Button");
-motor3Button.addEventListener("click", () => command("testmotor,3,15"));
-const motor4Button = document.querySelector("#motor4Button");
-motor4Button.addEventListener("click", () => command("testmotor,4,15"));
+
 
 // const gpsForm = document.getElementById("gpsForm");
 // gpsForm.addEventListener("submit", (e) => {

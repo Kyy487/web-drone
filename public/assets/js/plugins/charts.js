@@ -159,10 +159,11 @@ if (document.querySelector("#chart-bars")) {
 
 if (document.querySelector("#chart-line")) {
   async function fetchDataAndRenderChart() {
-    // const response = await fetch('http://192.168.105.193:5000/data');
-    // const response = await fetch('http://192.168.1.222:5000/data');
-    const response = await fetch("http://127.0.0.1:5000/data");
+    const server = window.DRONE_API_BASE || "/api";
+    const response = await fetch(`${server}/data`);
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
     const data = await response.json();
+    if (!Array.isArray(data) || data.length === 0) return;
 
     // Limit the data to the last 10 entries
     const limit = 10;
@@ -261,5 +262,7 @@ if (document.querySelector("#chart-line")) {
     });
   }
 
-  fetchDataAndRenderChart();
+  fetchDataAndRenderChart().catch((error) => {
+    console.error("Error rendering altitude chart:", error);
+  });
 }

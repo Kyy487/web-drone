@@ -28,7 +28,7 @@ export const EMAIL = "emailkamu@contoh.com"; // ganti dengan email asli
 export const INSTAGRAM = "https://www.instagram.com/astraversa_";
 
 export const NAV: NavItem[] = [
-  { label: "Drones", href: "#" },
+  { label: "Drones", href: "#produk" },
   { label: "About", href: "#about" },
   { label: "Team", href: "#team" },
   { label: "Testing", href: "#testing" },
@@ -58,7 +58,7 @@ export const TEST_PHOTOS: MediaItem[] = [
   { label: "Video pendek", img: "/gambar/pendek.mp4", autoplay: true },
 ];
 
-export const MAIN_VIDEO = { src: "/gambar/Video.mp4", poster: "/gambar/Drone.jpg" };
+export const MAIN_VIDEO = { src: "/gambar/Video.mp4", poster: "/gambar/Drone.png" };
 
 export const DOCS: DocItem[] = [
   { title: "Tahap 1", desc: "Perakitan Komponen", label: "Foto perakitan", img: "/gambar/perakitan1.jpeg" },
