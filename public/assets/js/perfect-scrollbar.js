@@ -1,36 +1,18 @@
 (function () {
-  var isWindows = navigator.platform.indexOf("Win") > -1 ? true : false;
+  if (typeof PerfectScrollbar === "undefined") return;
 
-  if (isWindows) {
-    // if we are on windows OS we activate the perfectScrollbar function
-    if (document.querySelector("main")) {
-      var mainpanel = document.querySelector("main");
-      var ps = new PerfectScrollbar(mainpanel);
-    }
+  var isWindows = navigator.platform.indexOf("Win") > -1;
 
-    if (document.querySelectorAll(".overflow-auto")[0]) {
-      var sidebar = document.querySelectorAll(".overflow-auto");
-      var i = 0;
-      var ps;
-      sidebar.forEach((element) => {
-        ps[i++] = new PerfectScrollbar(element);
-      });
-    }
-    if (document.querySelectorAll(".overflow-y-auto")[0]) {
-      var sidebar = document.querySelectorAll(".overflow-y-auto");
-      var i = 0;
-      var ps;
-      sidebar.forEach((element) => {
-        ps[i++] = new PerfectScrollbar(element);
-      });
-    }
-    if (document.querySelectorAll(".overflow-x-auto")[0]) {
-      var sidebar = document.querySelectorAll(".overflow-x-auto");
-      var i = 0;
-      var ps;
-      sidebar.forEach((element) => {
-        ps[i++] = new PerfectScrollbar(element);
-      });
-    }
+  if (!isWindows) return;
+
+  var mainPanel = document.querySelector("main");
+  if (mainPanel) {
+    new PerfectScrollbar(mainPanel);
   }
+
+  [".overflow-auto", ".overflow-y-auto", ".overflow-x-auto"].forEach(function (selector) {
+    document.querySelectorAll(selector).forEach(function (element) {
+      new PerfectScrollbar(element);
+    });
+  });
 })();
