@@ -1,0 +1,38 @@
+---
+interface Props {
+  img?: string;
+  label: string;
+  class?: string;
+  alt?: string;
+  autoplay?: boolean;
+  zoomable?: boolean;
+}
+
+const { img, label, class: className = "", alt = "", autoplay = false, zoomable = false } = Astro.props;
+const isVideo = !!img && /\.(mp4|webm|mov)$/i.test(img);
+const text = alt || label;
+---
+
+{
+  !img ? (
+    <div class={`media ph ${className}`}>{label}</div>
+  ) : isVideo ? (
+    <video
+      class={`media ${className}`}
+      src={img}
+      controls={!autoplay}
+      autoplay={autoplay}
+      loop={autoplay}
+      muted
+      playsinline
+      preload="metadata"
+      aria-label={text}
+    />
+  ) : zoomable ? (
+    <button type="button" class="zoom" data-src={img} data-alt={text} aria-label={`Perbesar: ${text}`}>
+      <img class={`media ${className}`} src={img} alt="" loading="lazy" decoding="async" />
+    </button>
+  ) : (
+    <img class={`media ${className}`} src={img} alt={text} loading="lazy" decoding="async" />
+  )
+}

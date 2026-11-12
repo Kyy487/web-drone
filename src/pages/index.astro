@@ -1,0 +1,202 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Media from "../components/Media.astro";
+import Avatar from "../components/Avatar.astro";
+import SectionHead from "../components/SectionHead.astro";
+import Icon from "../components/Icon.astro";
+import {
+  NAV,
+  STATS,
+  TEAM,
+  TEST_PHOTOS,
+  MAIN_VIDEO,
+  DOCS,
+  WA_NUMBER,
+  EMAIL,
+  INSTAGRAM,
+} from "../data/site";
+
+const d = (i: number): string => `--d:${(i * 0.09).toFixed(2)}s`;
+const waText = encodeURIComponent("Halo Astra Versa, saya tertarik dengan drone ini.");
+---
+
+<Layout
+  title="Astra Versa | Drone"
+  description="Drone buatan tim Astra Versa dengan kamera computer vision, baterai ekstra, dan rancangan modular."
+>
+  <div id="top">
+    <div class="progress" aria-hidden="true"></div>
+
+    <!-- NAVBAR -->
+    <nav class="nav" aria-label="Navigasi utama">
+      <div class="wrap nav-inner">
+        <div class="nav-left">
+          <a href="#top" class="logo" aria-label="Kembali ke atas">
+            <img src="/gambar/Logo.png" alt="Astra Versa" />
+          </a>
+          <label class="search">
+            <span class="sr">Cari</span>
+            <input type="search" placeholder="Cari..." />
+          </label>
+        </div>
+        <div class="nav-links">
+          {NAV.map((n) => <a href={n.href}>{n.label}</a>)}
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="swoosh" aria-hidden="true"></div>
+      <div class="wrap hero-inner">
+        <div class="hero-body" id="produk">
+          <div class="hero-text">
+            <h1>ASTRA<br /><span class="grad">VERSA</span></h1>
+            <p>
+              Hadir dari inovasi tim ASTRA VERSA, drone ini mengusung kamera berbasis computer vision. Baterai berkapasitas ekstra memberikan daya tahan terbang impresif. Rancangannya yang modular menjadi keunggulan utama untuk mendukung berbagai kebutuhan operasional di lapangan.
+            </p>
+            <div class="btns">
+              <a href="/dashboard.html" class="btn btn-primary">Start</a>
+              <a href="#about" class="btn btn-ghost">read more</a>
+            </div>
+          </div>
+          <div class="hero-img">
+            <img src="/gambar/Drone.png" alt="Drone Astra Versa" fetchpriority="high" />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ABOUT (putih) -->
+    <section id="about" class="section">
+      <div class="wrap">
+        <div class="split">
+          <div data-reveal>
+            <Media img="/gambar/Drone.mp4" label="Video drone" class="tall" autoplay />
+          </div>
+          <div class="split-text">
+            <div data-reveal class="head">
+              <div class="eyebrow">ABOUT</div>
+              <h2>Tentang Project <span class="hl">Drone</span> ini</h2>
+            </div>
+            <p data-reveal style={d(1)} class="body">
+              Proyek pengembangan drone ini berawal dari tingginya kebutuhan akan perangkat udara berakurasi tinggi yang mampu menjangkau wilayah sulit diakses secara efisien. Keterbatasan jangkauan pemantauan manual dan mahalnya biaya operasional survei konvensional menjadi tantangan utama yang ingin kami selesaikan melalui inovasi teknologi penerbangan mandiri.
+            </p>
+            <p data-reveal style={d(2)} class="body">
+              Dengan mengintegrasikan flight controller berbasis sistem otonom serta teknologi kamera beresolusi tinggi, proyek ini bertujuan menghadirkan solusi pemetaan dan pemantauan udara yang responsif. Hasilnya, drone ini mampu menyajikan data visual secara real-time dengan efisiensi energi yang optimal dan tingkat stabilitas penerbangan yang tinggi di berbagai kondisi lapangan.
+            </p>
+            <div class="stats">
+              {
+                STATS.map((s, i) => (
+                  <div class="stat" data-reveal style={d(i + 3)}>
+                    <div class="stat-v">{s.value}</div>
+                    <div class="stat-l">{s.label}</div>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEAM (biru muda) -->
+    <section id="team" class="section alt">
+      <div class="wrap">
+        <SectionHead eyebrow="TEAM" />
+        <div class="team">
+          {
+            TEAM.map((m, i) => (
+              <figure data-reveal style={d(i)}>
+                <Avatar name={m.name} img={m.img} />
+                <figcaption>
+                  <b>{m.name}</b>
+                  <span>{m.role}</span>
+                </figcaption>
+              </figure>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTING (putih) -->
+    <section id="testing" class="section">
+      <div class="wrap">
+        <SectionHead eyebrow="TESTING" title="Foto & video uji terbang" />
+        <div class="test-top">
+          <div class="video" data-reveal>
+            <video src={MAIN_VIDEO.src} poster={MAIN_VIDEO.poster} autoplay muted loop playsinline></video>
+          </div>
+          <div class="test-side">
+            {
+              TEST_PHOTOS.slice(0, 2).map((p, i) => (
+                <div data-reveal style={d(i + 1)}>
+                  <Media img={p.img} label={p.label} autoplay={p.autoplay} zoomable />
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <div class="test-row">
+          {
+            TEST_PHOTOS.slice(2).map((p, i) => (
+              <div data-reveal style={d(i)}>
+                <Media img={p.img} label={p.label} class="ratio43" autoplay={p.autoplay} zoomable />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- DOKUMENTASI (biru muda) -->
+    <section id="dokumentasi" class="section alt">
+      <div class="wrap">
+        <SectionHead eyebrow="DOKUMENTASI" title="Proses pembuatan" />
+        <div class="docs">
+          {
+            DOCS.map((doc, i) => (
+              <div data-reveal style={d(i)}>
+                <Media img={doc.img} label={doc.label} alt={doc.title} class="ratio32" zoomable />
+                <b class="doc-t">{doc.title}</b>
+                <span class="doc-d">{doc.desc}</span>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA + FOOTER (navy) -->
+    <footer id="kontak" class="footer">
+      <div class="wrap footer-top" data-reveal>
+        <div>
+          <h2>Tertarik dengan drone ini?</h2>
+          <div class="contact-boxes">
+            <a href={`mailto:${EMAIL}`} class="contact-box"><Icon name="mail" /> Email</a>
+            <a href={`https://wa.me/${WA_NUMBER}`} target="_blank" rel="noopener noreferrer" class="contact-box">
+              <Icon name="chat" /> WhatsApp
+            </a>
+            <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" class="contact-box">
+              <Icon name="insta" /> Instagram
+            </a>
+          </div>
+        </div>
+        <a
+          href={`https://wa.me/${WA_NUMBER}?text=${waText}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-white">Hubungi kami</a
+        >
+      </div>
+      <div class="wrap copy">© 2026 Astra Versa. Semua hak dilindungi.</div>
+    </footer>
+
+    <!-- LIGHTBOX -->
+    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Pratinjau foto" hidden>
+      <button type="button" class="lb-close" aria-label="Tutup">✕</button>
+      <img src="" alt="" />
+    </div>
+  </div>
+</Layout>

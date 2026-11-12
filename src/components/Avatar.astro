@@ -1,0 +1,24 @@
+---
+interface Props {
+  name: string;
+  img?: string;
+}
+
+const { name, img } = Astro.props;
+const initials = name
+  .split(" ")
+  .slice(0, 2)
+  .map((w) => w[0])
+  .join("")
+  .toUpperCase();
+---
+
+{
+  img ? (
+    <img class="media square" src={img} alt={name} loading="lazy" decoding="async" />
+  ) : (
+    <div class="avatar" role="img" aria-label={name}>
+      {initials}
+    </div>
+  )
+}

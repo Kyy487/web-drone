@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <link rel="icon" href="assets/images/favicon.ico" />
+  <title>K-UI Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;700;900&display=swap"
+    rel="stylesheet" />
+
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.7.3/dist/alpine.min.js" defer></script>
+
+</head>
+
+<body class="h-full bg-blue-gray-100 dark:bg-gray-900">
+  <div x-data="setup()" x-init="$refs.loading.classList.add('hidden');" @resize.window="watchScreen()">
+    <div class="flex h-screen antialiased text-gray-900 bg-blue-gray-100 dark:bg-gray-50 dark:text-light">
+      <!-- Loading screen -->
+      <div x-ref="loading"
+        class="fixed inset-0 z-50 flex items-center justify-center text-2xl font-semibold text-white bg-primary-darker">
+        Loading.....
+      </div>
+
+      <!-- Sidebar -->
+      <div class="flex flex-shrink-0 transition-all">
+        <div x-show="isSidebarOpen" @click="isSidebarOpen = false"
+          class="fixed inset-0 z-10 bg-black bg-opacity-50 lg:hidden"></div>
+        <div x-show="isSidebarOpen" class="fixed inset-y-0 z-10 w-16 bg-white"></div>
+
+        <!-- Mobile bottom bar -->
+        <nav aria-label="Options"
+          class="fixed inset-x-0 bottom-0 flex flex-row-reverse items-center justify-between px-4 py-2 bg-white border-t sm:hidden shadow-t border-primary-100 rounded-t-3xl">
+          <!-- Menu button -->
+          <button
+            @click="(isSidebarOpen && currentSidebarTab == 'linksTab') ? isSidebarOpen = false : isSidebarOpen = true; currentSidebarTab = 'linksTab'"
+            class="p-2 transition-colors rounded-lg shadow-md hover:bg-primary-darker hover:text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-white focus:ring-offset-2"
+            :class="(isSidebarOpen && currentSidebarTab == 'linksTab') ? 'text-white bg-primary' : 'text-gray-500 bg-white'">
+            <span class="sr-only">Toggle sidebar</span>
+            <svg aria-hidden="true" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+          </button>
+
+          <!-- Logo -->
+          <a href="#">
+            <img class="w-10 h-auto" src="./assets/images/droneLogo.png" alt="K-UI" />
+          </a>
+
+          <!-- User avatar button -->
+          <div class="relative flex items-center flex-shrink-0 p-2" x-data="{ isOpen: false }">
+            <button @click="isOpen = !isOpen; $nextTick(() => {isOpen ? $refs.userMenu.focus() : null})"
+              class="transition-opacity rounded-lg opacity-80 hover:opacity-100 focus:outline-none focus:ring focus:ring-primary focus:ring-offset-white focus:ring-offset-2">
+              <img class="w-8 h-8 rounded-lg shadow-md" src="./assets/images/avatar.png" alt="Profile Picture" />
+              <span class="sr-only">User menu</span>
+            </button>
+            <div x-show="isOpen" @click.away="isOpen = false" @keydown.escape="isOpen = false" x-ref="userMenu"
+              tabindex="-1"
+              class="absolute w-48 py-1 mt-2 origin-bottom-left bg-white rounded-md shadow-lg left-10 bottom-14 focus:outline-none"
+              role="menu" aria-orientation="vertical" aria-label="user menu">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Your
+                Profile</a>
+
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Settings</a>
+
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Sign out</a>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Left mini bar -->
+        <nav aria-label="Options"
+          class="z-20 flex-col items-center flex-shrink-0 hidden w-16 py-4 bg-transparent border-r-2 shadow-none sm:flex rounded-tr-3xl rounded-br-3xl border-primary-100">
+          <!-- Logo -->
+          <div class="flex-shrink-0 py-4">
+            <a href="#">
+              <img class="w-10 h-auto" src="./assets/images/droneLogo.png" alt="K-UI" />
+            </a>
+          </div>
+          <div class="flex flex-col items-center flex-1 p-2 space-y-4">
+            <!-- Menu button -->
+            <button
+              @click="(isSidebarOpen && currentSidebarTab == 'linksTab') ? isSidebarOpen = false : isSidebarOpen = true; currentSidebarTab = 'linksTab'"
+              class="p-2 transition-colors rounded-lg shadow-md hover:bg-primary-darker hover:text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-white focus:ring-offset-2"
+              :class="(isSidebarOpen && currentSidebarTab == 'linksTab') ? 'text-white bg-primary' : 'text-gray-500 bg-white'">
+              <span class="sr-only">Toggle sidebar</span>
+              <svg aria-hidden="true" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+            </button>
+            <!-- Messages button -->
+            <button
+              @click="(isSidebarOpen && currentSidebarTab == 'messagesTab') ? isSidebarOpen = false : isSidebarOpen = true; currentSidebarTab = 'messagesTab'"
+              class="p-2 transition-colors rounded-lg shadow-md hover:bg-primary-darker hover:text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-white focus:ring-offset-2"
+              :class="(isSidebarOpen && currentSidebarTab == 'messagesTab') ? 'text-white bg-primary' : 'text-gray-500 bg-white'">
+              <span class="sr-only">Toggle message panel</span>
+              <svg aria-hidden="true" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </button>
+            <!-- Notifications button -->
+            <button
+              @click="(isSidebarOpen && currentSidebarTab == 'notificationsTab') ? isSidebarOpen = false : isSidebarOpen = true; currentSidebarTab = 'notificationsTab'"
+              class="p-2 transition-colors rounded-lg shadow-md hover:bg-primary-darker hover:text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-white focus:ring-offset-2"
+              :class="(isSidebarOpen && currentSidebarTab == 'notificationsTab') ? 'text-white bg-primary' : 'text-gray-500 bg-white'">
+              <span class="sr-only">Toggle notifications panel</span>
+              <svg aria-hidden="true" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- User avatar -->
+          <div class="relative flex items-center flex-shrink-0 p-2" x-data="{ isOpen: false }">
+            <button @click="isOpen = !isOpen; $nextTick(() => {isOpen ? $refs.userMenu.focus() : null})"
+              class="transition-opacity rounded-lg opacity-80 hover:opacity-100 focus:outline-none focus:ring focus:ring-primary focus:ring-offset-white focus:ring-offset-2">
+              <img class="w-10 h-10 rounded-lg shadow-md" src="./assets/images/avatar.png" alt="Profile Picture" />
+              <span class="sr-only">User menu</span>
+            </button>
+            <div x-show="isOpen" @click.away="isOpen = false" @keydown.escape="isOpen = false" x-ref="userMenu"
+              tabindex="-1"
+              class="absolute w-48 py-1 mt-2 origin-bottom-left bg-white rounded-md shadow-lg left-10 bottom-14 focus:outline-none"
+              role="menu" aria-orientation="vertical" aria-label="user menu">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Your
+                Profile</a>
+
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Settings</a>
+
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Sign out</a>
+            </div>
+          </div>
+        </nav>
+
+        <div x-transition:enter="transform transition-transform duration-300"
+          x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+          x-transition:leave="transform transition-transform duration-300" x-transition:leave-start="translate-x-0"
+          x-transition:leave-end="-translate-x-full" x-show="isSidebarOpen"
+          class="fixed inset-y-0 left-0 z-10 flex-shrink-0 w-80 bg-white border-r-2 shadow-lg sm:left-16 border-primary-100 rounded-tr-3xl rounded-br-3xl sm:w-80 lg:static lg:w-80">
+          <nav x-show="currentSidebarTab == 'linksTab'" aria-label="Main" class="flex flex-col h-full">
+            <!-- Logo -->
+            <div class="flex items-center justify-center flex-shrink-0 py-10">
+              <a href="#">
+                <img class="w-20 h-auto" src="./assets/images/droneLogo.png" alt="K-UI" />
+              </a>
+            </div>
+
+            <div class="flex-1 px-4 space-y-2 overflow-hidden hover:overflow-auto">
+              <a href="/peta.html" class="flex items-center space-x-2 transition-colors rounded-lg group text-primary hover:bg-primary hover:text-white" >
+                <span aria-hidden="true" class="p-2 transition-colors rounded-lg group-hover:bg-primary-dark group-hover:text-white">
+                  <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </span>
+                <span>Home</span>
+              </a>
+              <a href="/dashboard.html"
+                class="flex items-center w-full space-x-2 text-white rounded-lg bg-primary">
+                <span aria-hidden="true"
+                   class="p-2 rounded-lg bg-primary-dark">
+                  <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </span>
+                <span>Dashboard</span>
+              </a>
+            </div>
+          </nav>
+
+        <section x-show="currentSidebarTab == 'messagesTab'" id="controlPanelContainer" class="px-4 py-6" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); height: 100vh; overflow-y: auto;">
+          <!-- Control Panel Header -->
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+              <svg style="width: 22px; height: 22px; color: white;" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L8 6H5v3l-4 4 4 4v3h3l4 4 4-4h3v-3l4-4-4-4V6h-3l-4-4zm0 4.5L14.5 9H16v1.5L18.5 12 16 14.5V16h-1.5L12 18.5 9.5 16H8v-1.5L5.5 12 8 9.5V8h1.5L12 6.5z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 style="font-size: 18px; font-weight: 700; color: #1e293b;">Drone Control</h2>
+              <p style="font-size: 12px; color: #64748b;">Flight Management</p>
+            </div>
+          </div>
+
+          <!-- Status Card -->
+          <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <span style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Status</span>
+              <span id="statusIndicator" style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: #ef4444;">
+                <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                DISARMED
+              </span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <button id="armButton" onclick="command('arm')" style="padding: 12px 16px; background: linear-gradient(135deg, #22c55e, #16a34a); border: none; border-radius: 10px; color: white; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);">
+                ARM
+              </button>
+              <button id="disarmButton" onclick="command('disarm')" style="padding: 12px 16px; background: linear-gradient(135deg, #ef4444, #dc2626); border: none; border-radius: 10px; color: white; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
+                DISARM
+              </button>
+            </div>
+          </div>
+
+          <!-- Motors Card -->
+          <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <span style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Motors</span>
+              <span style="font-size: 10px; font-weight: 500; color: #3b82f6; background: #eff6ff; padding: 3px 8px; border-radius: 6px;">4 MOTORS</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <button id="cw1" onclick="command('cw1')" style="padding: 20px; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                <div style="font-size: 20px; margin-bottom: 4px;">⟳</div>
+                <div style="font-size: 11px; font-weight: 600; color: #475569;">CW 1</div>
+              </button>
+              <button id="ccw1" onclick="command('ccw1')" style="padding: 20px; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                <div style="font-size: 20px; margin-bottom: 4px;">⟲</div>
+                <div style="font-size: 11px; font-weight: 600; color: #475569;">CCW 1</div>
+              </button>
+              <button id="ccw2" onclick="command('ccw2')" style="padding: 20px; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                <div style="font-size: 20px; margin-bottom: 4px;">⟲</div>
+                <div style="font-size: 11px; font-weight: 600; color: #475569;">CCW 2</div>
+              </button>
+              <button id="cw2" onclick="command('cw2')" style="padding: 20px; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                <div style="font-size: 20px; margin-bottom: 4px;">⟳</div>
+                <div style="font-size: 11px; font-weight: 600; color: #475569;">CW 2</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- GPS Navigation Card -->
+          <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #f97316, #ea580c); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <svg style="width: 14px; height: 14px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </div>
+                <span style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">GPS Navigation</span>
+              </div>
+              <span style="font-size: 10px; font-weight: 500; color: #f97316; background: #fff7ed; padding: 3px 8px; border-radius: 6px;">WAYPOINT</span>
+            </div>
+            
+            <form id="gpsForm">
+              <!-- Latitude Input -->
+              <div style="margin-bottom: 12px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px;">
+                  Latitude
+                </label>
+                <input type="text" id="latitude" name="latitude" inputmode="decimal" required
+                       placeholder="e.g. -6.9734"
+                       style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-weight: 500; color: #1e293b; background: #f8fafc; box-sizing: border-box;">
+              </div>
+
+              <!-- Longitude Input -->
+              <div style="margin-bottom: 12px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px;">
+                  Longitude
+                </label>
+                <input type="text" id="longitude" name="longitude" inputmode="decimal" required
+                       placeholder="e.g. 107.6098"
+                       style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-weight: 500; color: #1e293b; background: #f8fafc; box-sizing: border-box;">
+              </div>
+
+              <!-- Altitude Input -->
+              <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px;">
+                  Altitude (meters)
+                </label>
+                <input type="text" id="altitude" name="altitude" inputmode="numeric" required
+                       placeholder="e.g. 120"
+                       style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-weight: 500; color: #1e293b; background: #f8fafc; box-sizing: border-box;">
+              </div>
+
+              <!-- Submit Button -->
+              <button type="submit"
+                      style="width: 100%; padding: 14px; background: linear-gradient(135deg, #f97316, #ea580c); border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <svg style="width: 18px; height: 18px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                  </svg>
+                  <span style="color: white; font-size: 13px; font-weight: 600;">FLY TO WAYPOINT</span>
+                </div>
+              </button>
+            </form>
+          </div>
+
+          <style>
+            @keyframes pulse {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.5; }
+            }
+          </style>
+        </section>
+
+        <section x-show="currentSidebarTab == 'notificationsTab'" class="px-4 py-6" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); height: 100vh; overflow-y: auto;">
+          <!-- Log Header -->
+          <div class="mb-4">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+              <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 18px; height: 18px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+              </div>
+              <div>
+                <h2 style="font-size: 18px; font-weight: 700; color: #1e293b;">Flight Log</h2>
+                <p style="font-size: 11px; color: #64748b;">System events & activities</p>
+              </div>
+            </div>
+            
+            <!-- Clear Log Button -->
+            <button onclick="clearLog()" style="width: 100%; padding: 8px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #64748b; cursor: pointer; transition: all 0.2s;"
+                    onmouseover="this.style.background='#e2e8f0'"
+                    onmouseout="this.style.background='#f1f5f9'">
+              Clear Log
+            </button>
+          </div>
+          
+          <!-- Log Container -->
+          <div id="logContainer" style="background: white; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); max-height: calc(100vh - 180px); overflow-y: auto;">
+            <!-- Log entries will be added here -->
+            <div class="log-entry" style="padding: 10px; border-bottom: 1px solid #f1f5f9;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></span>
+                <span style="font-size: 11px; color: #64748b;">System</span>
+                <span style="font-size: 10px; color: #94a3b8; margin-left: auto;">--:--:--</span>
+              </div>
+              <p style="font-size: 12px; color: #334155; margin: 0;">Log initialized. Waiting for events...</p>
+            </div>
+          </div>
+          
+          <script>
+            // Log functions
+            function addLog(message, type = 'info') {
+              const logContainer = document.getElementById('logContainer');
+              const now = new Date();
+              const time = now.toLocaleTimeString('en-US', { hour12: false });
+              
+              const colors = {
+                info: '#3b82f6',
+                success: '#10b981',
+                warning: '#f59e0b',
+                error: '#ef4444'
+              };
+              
+              const labels = {
+                info: 'Info',
+                success: 'Success',
+                warning: 'Warning',
+                error: 'Error'
+              };
+              
+              const entry = document.createElement('div');
+              entry.className = 'log-entry';
+              entry.style.cssText = 'padding: 10px; border-bottom: 1px solid #f1f5f9; animation: fadeIn 0.3s ease;';
+              entry.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <span style="width: 8px; height: 8px; background: ${colors[type]}; border-radius: 50%;"></span>
+                  <span style="font-size: 11px; color: #64748b;">${labels[type]}</span>
+                  <span style="font-size: 10px; color: #94a3b8; margin-left: auto;">${time}</span>
+                </div>
+                <p style="font-size: 12px; color: #334155; margin: 0;">${message}</p>
+              `;
+              
+              logContainer.insertBefore(entry, logContainer.firstChild);
+              
+              // Keep only last 50 entries
+              while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.lastChild);
+              }
+            }
+            
+            function clearLog() {
+              const logContainer = document.getElementById('logContainer');
+              logContainer.innerHTML = `
+                <div class="log-entry" style="padding: 10px; border-bottom: 1px solid #f1f5f9;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <span style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></span>
+                    <span style="font-size: 11px; color: #64748b;">System</span>
+                    <span style="font-size: 10px; color: #94a3b8; margin-left: auto;">${new Date().toLocaleTimeString('en-US', { hour12: false })}</span>
+                  </div>
+                  <p style="font-size: 12px; color: #334155; margin: 0;">Log cleared.</p>
+                </div>
+              `;
+            }
+            
+            // Make addLog globally available
+            window.addLog = addLog;
+            window.clearLog = clearLog;
+          </script>
+          
+          <style>
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(-5px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          </style>
+        </section>
+        
+        <script>
+          // Initialize GPS form handler
+          document.addEventListener('DOMContentLoaded', function() {
+            const gpsForm = document.getElementById("gpsForm");
+            if (gpsForm) {
+              gpsForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+
+                const lat = document.getElementById("latitude").value.trim();
+                const lng = document.getElementById("longitude").value.trim();
+                const alt = document.getElementById("altitude").value.trim();
+
+                if (!lat || !lng || !alt) {
+                  alert("All fields are required");
+                  return;
+                }
+
+                const cmd = `goto,${alt},${lat},${lng}`;
+                console.log("Sending goto command:", cmd);
+                
+                // Call the command function from script.js
+                if (typeof command === 'function') {
+                  command(cmd);
+                  if (typeof addLog === 'function') {
+                    addLog(`Waypoint sent: Lat ${lat}, Lng ${lng}, Alt ${alt}m`, 'success');
+                  }
+                } else {
+                  console.error('command function not available');
+                  alert('Command function not available. Make sure script.js is loaded.');
+                }
+                
+                gpsForm.reset();
+              });
+            }
+          });
+        </script>
+        </div>
+      </div>
+      <div class="flex flex-col flex-1">
+        <header class="absolute top-0 right-0 flex items-center justify-between flex-shrink-0 p-4 z-10">
+          <form action="#" class="flex-1">
+            <!--  -->
+          </form>
+          <div class="items-center hidden ml-4 sm:flex">
+
+
+            <!-- Mobile sub header button -->
+            <button @click="isSubHeaderOpen = !isSubHeaderOpen"
+              class="p-2 text-gray-400 bg-white rounded-lg shadow-md sm:hidden hover:text-gray-600 focus:outline-none focus:ring focus:ring-white focus:ring-offset-blue-gray-100 focus:ring-offset-4">
+              <span class="sr-only">More</span>
+
+              <svg aria-hidden="true" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </button>
+
+            <!-- Mobile sub header -->
+            <div x-transition:enter="transform transition-transform"
+              x-transition:enter-start="translate-y-full opacity-0" x-transition:enter-end="translate-y-0 opacity-100"
+              x-transition:leave="transform transition-transform" x-transition:leave-start="translate-y-0 opacity-100"
+              x-transition:leave-end="translate-y-full opacity-0" x-show="isSubHeaderOpen"
+              @click.away="isSubHeaderOpen = false"
+              class="absolute flex items-center justify-between p-2 bg-white rounded-md shadow-lg sm:hidden top-16 left-5 right-5">
+              <!-- Seetings button -->
+              <button @click="isSettingsPanelOpen = true; isSubHeaderOpen = false"
+                class="p-2 text-gray-400 bg-white rounded-lg shadow-md hover:text-gray-600 focus:outline-none focus:ring focus:ring-white focus:ring-offset-blue-gray-100 focus:ring-offset-4">
+                <span class="sr-only">Settings</span>
+                <svg aria-hidden="true" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              <!-- Messages button -->
+              <button @click="isSidebarOpen = true; currentSidebarTab = 'messagesTab'; isSubHeaderOpen = false"
+                class="p-2 text-gray-400 bg-white rounded-lg shadow-md hover:text-gray-600 focus:outline-none focus:ring focus:ring-white focus:ring-offset-blue-gray-100 focus:ring-offset-4">
+                <span class="sr-only">Toggle message panel</span>
+                <svg aria-hidden="true" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </button>
+              <!-- Notifications button -->
+              <button @click="isSidebarOpen = true; currentSidebarTab = 'notificationsTab'; isSubHeaderOpen = false"
+                class="p-2 text-gray-400 bg-white rounded-lg shadow-md hover:text-gray-600 focus:outline-none focus:ring focus:ring-white focus:ring-offset-blue-gray-100 focus:ring-offset-4">
+                <span class="sr-only">Toggle notifications panel</span>
+                <svg aria-hidden="true" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </button>
+              <!-- Github link -->
+              <a href="https://github.com/kamona-ui/dashboard-alpine" target="_blank"
+                class="p-2 text-white bg-black rounded-lg shadow-md hover:text-gray-200 focus:outline-none focus:ring focus:ring-black focus:ring-offset-blue-gray-100 focus:ring-offset-2">
+                <span class="sr-only">github link</span>
+                <svg aria-hidden="true" class="w-6 h-6" fill="currentColor" xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M12.026,2c-5.509,0-9.974,4.465-9.974,9.974c0,4.406,2.857,8.145,6.821,9.465 c0.499,0.09,0.679-0.217,0.679-0.481c0-0.237-0.008-0.865-0.011-1.696c-2.775,0.602-3.361-1.338-3.361-1.338 c-0.452-1.152-1.107-1.459-1.107-1.459c-0.905-0.619,0.069-0.605,0.069-0.605c1.002,0.07,1.527,1.028,1.527,1.028 c0.89,1.524,2.336,1.084,2.902,0.829c0.091-0.645,0.351-1.085,0.635-1.334c-2.214-0.251-4.542-1.107-4.542-4.93 c0-1.087,0.389-1.979,1.024-2.675c-0.101-0.253-0.446-1.268,0.099-2.64c0,0,0.837-0.269,2.742,1.021 c0.798-0.221,1.649-0.332,2.496-0.336c0.849,0.004,1.701,0.115,2.496,0.336c1.906-1.291,2.742-1.021,2.742-1.021 c0.545,1.372,0.203,2.387,0.099,2.64c0.64,0.696,1.024,1.587,1.024,2.675c0,3.833-2.33,4.675-4.552,4.922 c0.355,0.308,0.675,0.916,0.675,1.846c0,1.334-0.012,2.41-0.012,2.737c0,0.267,0.178,0.577,0.687,0.479 C19.146,20.115,22,16.379,22,11.974C22,6.465,17.535,2,12.026,2z">
+                  </path>
+                </svg>
+              </a>
+            </div>
+        </header>
+
+
+        <!-- Main Section -->
+        <iframe src="cards.html" class="content w-full h-full"></iframe>
+
+
+
+    </div>
+
+    <!-- Panels -->
+
+    <!-- Settings Panel -->
+    <!-- Backdrop -->
+    <div x-show="isSettingsPanelOpen" class="fixed inset-0 bg-black bg-opacity-50" @click="isSettingsPanelOpen = false"
+      aria-hidden="true"></div>
+    <!-- Panel -->
+    <section x-transition:enter="transform transition-transform duration-300"
+      x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+      x-transition:leave="transform transition-transform duration-300" x-transition:leave-start="translate-x-0"
+      x-transition:leave-end="translate-x-full" x-show="isSettingsPanelOpen"
+      class="fixed inset-y-0 right-0 w-64 bg-white border-l border-primary-100 rounded-l-3xl">
+      <div class="px-4 py-8">
+        <h2 class="text-lg font-semibold">Settings</h2>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const setup = () => {
+      return {
+        isSidebarOpen: false,
+        currentSidebarTab: null,
+        isSettingsPanelOpen: false,
+        isSubHeaderOpen: false,
+        watchScreen() {
+          if (window.innerWidth <= 1024) {
+            this.isSidebarOpen = false
+          }
+        },
+      }
+    }
+  </script>
+  <script src="./assets/js/script.js"></script>
+
+</body>
+
+</html>
