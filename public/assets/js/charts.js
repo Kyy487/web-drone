@@ -160,10 +160,21 @@ if (document.querySelector("#chart-bars")) {
 
 if (document.querySelector("#chart-line")) {
   async function fetchDataAndRenderChart() {
-    const server = window.DRONE_API_BASE || "/api";
-    const response = await fetch(`${server}/data`);
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-    const data = await response.json();
+    let data = null;
+
+    try {
+      const server = window.DRONE_API_BASE || "/api";
+      const response = await fetch(`${server}/data`);
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      data = await response.json();
+    } catch (error) {
+      console.warn("Live drone API unavailable for chart, showing demo data:", error);
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      data = Array.isArray(window.DRONE_DEMO_DATA) ? window.DRONE_DEMO_DATA : [];
+    }
+
     if (!Array.isArray(data) || data.length === 0) return;
 
     // Limit the data to the last 10 entries

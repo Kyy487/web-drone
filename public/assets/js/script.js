@@ -201,9 +201,16 @@ draw.start();
 // }
 
 async function getDroneData() {
-  const res = await fetch(`${server}/data`);
-  if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-  return await res.json(); // array of drone data
+  try {
+    const res = await fetch(`${server}/data`);
+    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) return data;
+  } catch (error) {
+    console.warn("Live drone API unavailable for map, showing demo data:", error);
+  }
+
+  return Array.isArray(window.DRONE_DEMO_DATA) ? window.DRONE_DEMO_DATA : [];
 }
 
 
