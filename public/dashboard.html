@@ -566,6 +566,21 @@
   </script>
   <script src="./assets/js/api-config.js"></script>
   <script src="./assets/js/command.js"></script>
+  <script>
+    (function () {
+      function hideLoading() {
+        var loading = document.querySelector('[x-ref="loading"]');
+        if (loading) loading.classList.add('hidden');
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideLoading);
+      } else {
+        hideLoading();
+      }
+      window.addEventListener('load', hideLoading);
+      setTimeout(hideLoading, 1500);
+    })();
+  </script>
 
 </body>
 
