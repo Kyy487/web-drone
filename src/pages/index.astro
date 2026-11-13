@@ -39,7 +39,16 @@ const waText = encodeURIComponent("Halo Astra Versa, saya tertarik dengan drone 
             <input type="search" placeholder="Cari..." />
           </label>
         </div>
-        <div class="nav-links">
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Buka menu navigasi"
+          aria-expanded="false"
+          aria-controls="nav-menu"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-menu">
           {NAV.map((n) => <a href={n.href}>{n.label}</a>)}
         </div>
       </div>

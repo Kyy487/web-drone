@@ -23,6 +23,32 @@ window.addEventListener(
 );
 updateScroll();
 
+/* Menu navigasi mobile */
+const navToggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
+const navMenu = document.querySelector<HTMLElement>("#nav-menu");
+
+function closeMenu(): void {
+  nav?.classList.remove("menu-open");
+  navToggle?.setAttribute("aria-expanded", "false");
+}
+
+navToggle?.addEventListener("click", () => {
+  const open = nav?.classList.toggle("menu-open") ?? false;
+  navToggle.setAttribute("aria-expanded", String(open));
+  navToggle.setAttribute("aria-label", open ? "Tutup menu navigasi" : "Buka menu navigasi");
+});
+
+navMenu?.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+document.addEventListener("click", (e) => {
+  if (nav?.classList.contains("menu-open") && !nav.contains(e.target as Node)) closeMenu();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeMenu();
+});
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 900) closeMenu();
+});
+
 /* Elemen muncul halus saat masuk layar */
 const revealObserver = new IntersectionObserver(
   (entries) => {
