@@ -49,8 +49,7 @@ export const TEAM: Member[] = [
   { name: "Farhan Kamil", role: "AI Engineer", img: "/gambar/team/Farhan.JPG" },
   { name: "Najwa Hikmatyar", role: "Project Manager", img: "/gambar/team/Najwa.JPG", position: "center 30%" },
   { name: "Fathan Kairu", role: "UI/UX Designer", img: "/gambar/team/Fathan.JPG" },
-  {
-    name: "Moch Riezky Dwi Kuswanto",
+  { name: "Moch Riezky Dwi Kuswanto",
     role: "Web Developer,",
     img: "/gambar/team/riezky.jpg",
     position: "center 25%",
