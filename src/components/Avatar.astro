@@ -2,9 +2,11 @@
 interface Props {
   name: string;
   img?: string;
+  position?: string;
+  zoom?: number;
 }
 
-const { name, img } = Astro.props;
+const { name, img, position = "center", zoom = 1 } = Astro.props;
 const initials = name
   .split(" ")
   .slice(0, 2)
@@ -15,7 +17,9 @@ const initials = name
 
 {
   img ? (
-    <img class="media square" src={img} alt={name} loading="lazy" decoding="async" />
+    <div class="team-photo" style={`--pos:${position};--zoom:${zoom}`}>
+      <img class="media square" src={img} alt={name} loading="lazy" decoding="async" />
+    </div>
   ) : (
     <div class="avatar" role="img" aria-label={name}>
       {initials}

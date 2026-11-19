@@ -10,6 +10,8 @@ export interface Member {
   name: string;
   role: string;
   img?: string;
+  position?: string;
+  zoom?: number;
 }
 export interface MediaItem {
   label: string;
@@ -43,11 +45,17 @@ export const STATS: Stat[] = [
 ];
 
 export const TEAM: Member[] = [
-  { name: "Zakhwa Aliya", role: "Penanggung Jawab", img: "/gambar/team/Zakhwa.JPG" },
+  { name: "Zakhwa Aliya", role: "Penanggung Jawab", img: "/gambar/team/Zakhwa.JPG", position: "center 20%" },
   { name: "Farhan Kamil", role: "AI Engineer", img: "/gambar/team/Farhan.JPG" },
-  { name: "Najwa Hikmatyar", role: "Project Manager", img: "/gambar/team/Najwa.JPG" },
+  { name: "Najwa Hikmatyar", role: "Project Manager", img: "/gambar/team/Najwa.JPG", position: "center 30%" },
   { name: "Fathan Kairu", role: "UI/UX Designer", img: "/gambar/team/Fathan.JPG" },
-  { name: "Moch Riezky Dwi Kuswanto", role: "Web Developer,", img: "/gambar/team/riezky.jpg" },
+  {
+    name: "Moch Riezky Dwi Kuswanto",
+    role: "Web Developer,",
+    img: "/gambar/team/Riezky.jpg",
+    position: "center 25%",
+    zoom: 2.15,
+  },
 ];
 
 export const TEST_PHOTOS: MediaItem[] = [
