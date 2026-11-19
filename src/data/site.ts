@@ -52,7 +52,7 @@ export const TEAM: Member[] = [
   {
     name: "Moch Riezky Dwi Kuswanto",
     role: "Web Developer,",
-    img: "/gambar/team/Riezky.jpg",
+    img: "/gambar/team/riezky.jpg",
     position: "center 25%",
     zoom: 2.15,
   },
